@@ -1,0 +1,54 @@
+# LLM Docs
+
+## Compact Docs
+
+Copy just this section if you want to keep your context small.
+If you want all docs, check the section `Full Docs per Module` below.
+
+Xlsx.create : { headers : List Str, rows : List Row } -> Result (List U8) CreateError
+
+## Full Docs per Module
+### Xlsx
+
+Description:
+A row of cells in the spreadsheet.
+
+Each element in the list represents a cell value as a string.
+The order corresponds to the column order defined by the headers.
+
+Description:
+Errors that can occur when creating an XLSX file.
+
+These wrap errors from the underlying ZIP creation and should
+rarely occur in practice. You *could* create an XLSX file over
+4 GB in size to trigger `FileTooLarge`, but the other errors
+should not happen. We expose them anyway to avoid a crash on
+unintended behaviour:
+
+- `ZipErr EmptyPath` - An internal archive path was empty (should never happen)
+- `ZipErr PathTooLong` - An internal archive path exceeded 65535 bytes (should never happen)
+- `ZipErr FileTooLarge` - The total spreadsheet data exceeded 4GB (can happen)
+
+create : { headers : List Str, rows : List Row } -> Result (List U8) CreateError
+
+Description:
+Create an XLSX file from headers and data rows.
+
+Returns the XLSX file as a byte array that can be written to disk
+or served on the fly. The spreadsheet will have a single sheet
+named "Sheet1" with the headers in the first row and data in
+subsequent rows.
+
+## Example
+
+```roc
+when Xlsx.create({ headers: ["A", "B"], rows: [["1", "2"]] }) is
+    Ok(bytes) -> File.write_bytes!(bytes, "output.xlsx")
+    Err(_) -> # handle error
+```
+
+## Limitations
+
+- All cells are stored as strings (no number or date formatting)
+- No styling, formulas, or multiple sheets
+

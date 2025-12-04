@@ -1,0 +1,11 @@
+# Ignore generated binaries (with no extension) by default
+*
+!*.*
+!*/
+
+.direnv/
+.envrc
+generated-docs/
+
+# Test artifacts
+test_*.xlsx
