@@ -2,7 +2,7 @@
 
 Generate XLSX spreadsheets in Roc.
 
-Creates minimal but valid XLSX files with headers and data rows. All cells are stored as inline strings.
+`Xlsx.create` takes headers and rows and returns the bytes of a minimal but valid XLSX file, ready to write to disk or serve on the fly. All cells are stored as inline strings.
 
 View the API documentation at [https://niclas-ahden.github.io/roc-xlsx/](https://niclas-ahden.github.io/roc-xlsx/).
 
@@ -10,32 +10,30 @@ View the API documentation at [https://niclas-ahden.github.io/roc-xlsx/](https:/
 
 ```roc
 app [main!] {
-    pf: platform "https://github.com/roc-lang/basic-cli/releases/download/0.20.0/X73hGh05nNTkDHU06FHC0YfFaQB1pimX7gncRcao5mU.tar.br",
-    xlsx: "https://github.com/niclas-ahden/roc-xlsx/releases/download/0.1.0/REPLACE_WITH_HASH.tar.br",
+    pf: platform "https://github.com/roc-lang/basic-cli/releases/download/0.23.0-rc1/3hT3SoHZ6qbEsa9qVFLUW3547U5LeoNd1KbpqLpz4r1i.tar.zst",
+    xlsx: "https://github.com/niclas-ahden/roc-xlsx/releases/download/0.1.0/qMTvhJjHIr9mX48Te9F7xMfalEo_yxThuIbSDV-_IrY.tar.br",
 }
 
-import pf.File
+import pf.Path
 import pf.Stdout
 import xlsx.Xlsx
 
-main! = |_args|
-    spreadsheet = Xlsx.create({
+main! = |_args| {
+    bytes = Xlsx.create({
         headers: ["Name", "Email", "Score"],
         rows: [
             ["Alice", "alice@example.com", "95"],
             ["Bob", "bob@example.com", "87"],
             ["Carol", "carol@example.com", "92"],
         ],
-    })
+    })?
 
-    when spreadsheet is
-        Ok(bytes) ->
-            File.write_bytes!(bytes, "output.xlsx")?
-            Stdout.line!("Created output.xlsx")
-
-        Err(_) ->
-            Stdout.line!("Error creating spreadsheet")
+    Path.write_bytes!(Path.utf8("example.xlsx"), bytes)?
+    Stdout.line!("Wrote example.xlsx (${bytes.len().to_str()} bytes)")
+}
 ```
+
+See [examples](examples/) for a runnable program.
 
 ## Limitations
 
@@ -44,33 +42,6 @@ main! = |_args|
 - No styling (fonts, colors, borders)
 - No formulas
 
-## Contributing
+## How it is built
 
-Run all tests:
-
-```bash
-./tests.sh
-```
-
-Or run individual suites:
-
-```bash
-roc test package/Xlsx.roc      # Unit tests (fast)
-roc run test/IntegrationTest.roc   # Integration tests (creates files, uses unzip)
-```
-
-## Status
-
-`roc-xlsx` uses the Roc compiler. The API may change as Roc evolves.
-
-## Documentation
-
-View the API documentation at [https://niclas-ahden.github.io/roc-xlsx/](https://niclas-ahden.github.io/roc-xlsx/).
-
-### Generating documentation locally
-
-```bash
-./docs.sh 0.1.0
-```
-
-This will generate HTML documentation and place it in `www/0.1.0/`.
+An XLSX file is a ZIP archive of XML parts. The XML comes from [roc-xml](https://github.com/niclas-ahden/roc-xml) and the archive from [roc-zip](https://github.com/niclas-ahden/roc-zip), so this package is pure Roc all the way down.

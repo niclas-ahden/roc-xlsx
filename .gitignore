@@ -7,5 +7,8 @@
 .envrc
 generated-docs/
 
-# Test artifacts
-test_*.xlsx
+# The catch-alls above ignore extensionless files, but this one must ship
+!LICENSE
+
+# Written by examples/main.roc
+example.xlsx

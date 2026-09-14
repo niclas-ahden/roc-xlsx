@@ -1,0 +1,66 @@
+name: Test latest release on latest nightly Roc
+
+# Every morning, the latest published bundle on the newest Roc nightly. Green
+# moves the recommendation in that release's notes forward.
+
+on:
+  schedule:
+    # Nightlies publish between 10:00 and 13:30 UTC.
+    - cron: '0 15 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nightly-roc
+  cancel-in-progress: false
+
+jobs:
+  roc-versions:
+    name: 'Required: look up the release and the latest Roc'
+    uses: niclas-ahden/roc-workflows/.github/workflows/resolve-versions.yml@v3
+    with:
+      release: true
+
+  # The versions go in the job name, because `run-name` cannot see `needs`.
+  test:
+    name: 'Required: latest Roc'
+    needs: roc-versions
+    uses: niclas-ahden/roc-workflows/.github/workflows/suite.yml@v3
+    with:
+      roc: ${{ needs.roc-versions.outputs.nightly }}
+      label: roc-xlsx ${{ needs.roc-versions.outputs.release }} on ${{ needs.roc-versions.outputs.nightly }}
+      ref: ${{ needs.roc-versions.outputs.release }}
+      bundle-url: ${{ needs.roc-versions.outputs.bundle }}
+
+  other-backends:
+    name: 'Optional: latest Roc, other backends'
+    needs: roc-versions
+    uses: niclas-ahden/roc-workflows/.github/workflows/suite.yml@v3
+    with:
+      roc: ${{ needs.roc-versions.outputs.nightly }}
+      label: roc-xlsx ${{ needs.roc-versions.outputs.release }} on ${{ needs.roc-versions.outputs.nightly }}
+      opts: '["dev", "size", "interpreter"]'
+      ref: ${{ needs.roc-versions.outputs.release }}
+      bundle-url: ${{ needs.roc-versions.outputs.bundle }}
+
+  recommend:
+    name: Recommend this Roc in the release notes
+    needs: [roc-versions, test]
+    permissions:
+      contents: write
+    uses: niclas-ahden/roc-workflows/.github/workflows/name-nightly.yml@v3
+    with:
+      release: ${{ needs.roc-versions.outputs.release }}
+      nightly: ${{ needs.roc-versions.outputs.nightly }}
+
+  name-commit-range:
+    name: Name the Roc commit range that broke it
+    needs: [roc-versions, test]
+    if: needs.test.result == 'failure'
+    runs-on: ubuntu-24.04
+    steps:
+      - run: |
+          echo "::error::roc-xlsx ${{ needs.roc-versions.outputs.release }} fails on roc ${{ needs.roc-versions.outputs.nightly }}"
+          echo "  https://github.com/roc-lang/roc/compare/${{ needs.roc-versions.outputs.prev_sha }}...${{ needs.roc-versions.outputs.sha }}"
