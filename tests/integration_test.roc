@@ -1,13 +1,15 @@
 ## Writes spreadsheets to disk and reads them back with a real `unzip` and
 ## `xmllint`: the archive has to pass its integrity check, hold every part an
 ## XLSX needs, every part has to parse as XML, and the worksheet has to hand
-## back the cell values we put in.
+## back the cell values we put in. Then LibreOffice, where there is one, opens
+## a spreadsheet and has to read the same cell values out of it.
 app [main!] {
 	pf: platform "https://github.com/roc-lang/basic-cli/releases/download/0.23.0-rc1/3hT3SoHZ6qbEsa9qVFLUW3547U5LeoNd1KbpqLpz4r1i.tar.zst",
 	xlsx: "../package/main.roc",
 }
 
 import pf.Cmd
+import pf.Env
 import pf.OsStr
 import pf.Path
 import pf.Stdout
@@ -21,6 +23,7 @@ main! = |_args| {
 	run_test!("unicode", test_unicode!)?
 	run_test!("500 rows", test_many_rows!)?
 	run_test!("control characters", test_control_chars!)?
+	test_libreoffice!()?
 
 	Stdout.line!("")?
 	Stdout.line!("All integration tests passed.")
@@ -174,6 +177,132 @@ test_control_chars! = || {
 			# The point of the encoding: a real XML parser accepts the sheet
 			verify_well_formed!(path)?
 			verify_contains!(path, ["bell_x0007_ and escape _x001B_[0m", "_x005F_x0041_", "unclosed _x005F_x005F_x0007_ stays", "<t xml:space=\"preserve\">  padded  </t>", "windows_x000D_\nline ending"])
+		},
+	)
+}
+
+## unzip and xmllint prove a ZIP of well-formed XML, which a spreadsheet
+## program can still refuse or misread. So LibreOffice opens one too, and the
+## cells it reads back have to be the strings that went in: control
+## characters, carriage returns and literal `_xHHHH` decoded, whitespace kept.
+##
+## LibreOffice is large and nixpkgs builds it for Linux only, so without
+## `soffice` on the PATH this is skipped, out loud. The flake's dev shell
+## provides it on Linux and sets ROC_XLSX_REQUIRE_LIBREOFFICE there, which
+## turns a missing `soffice` into a failure rather than a skip.
+test_libreoffice! : () => Try({}, _)
+test_libreoffice! = || {
+	name = "LibreOffice reads back what went in"
+	if Cmd.check_available!("soffice") {
+		run_test!(name, round_trip_libreoffice!)
+	} else if Env.var_str!(OsStr.utf8("ROC_XLSX_REQUIRE_LIBREOFFICE")).is_ok() {
+		Err(LibreOfficeRequiredButNotOnPath)
+	} else {
+		Stdout.line!("SKIP: ${name} (no soffice on the PATH)")
+	}
+}
+
+round_trip_libreoffice! : () => Try({}, _)
+round_trip_libreoffice! = || {
+	values = [
+		"plain",
+		# Whitespace is kept, wherever it is
+		"  padded  ",
+		"   ",
+		"tab\tseparated",
+		"unix\nline",
+		"\nleading and trailing newline\n",
+		"windows\r\nline",
+		"lone\rcarriage return",
+		# Text that looks like something else stays text. A cell read as a
+		# number, a date or a boolean would come back without its quotes.
+		"007",
+		"1.5",
+		"1e5",
+		"2026-09-18",
+		"TRUE",
+		"=1+1",
+		"+46 70 123",
+		"@SUM(A1)",
+		"'apostrophe",
+		"#DIV/0!",
+		# What XML cannot express, and what it can but rarely sees
+		"bell\u(7)end",
+		"nul\u(0)end",
+		"\u(1)\u(8)\u(B)\u(C)\u(E)\u(1F)",
+		"\u(FFFE) and \u(FFFF)",
+		"\u(7F) and \u(85) and \u(2028)",
+		"\u(FEFF)byte order mark",
+		# Literal `_xHHHH`, which a reader must not decode
+		"_x0041_",
+		"_xbeef_",
+		"_x0041",
+		"_x005F\u(7)",
+		"__x0041_",
+		"_x005F_x0041_",
+		"_x0041__x0042_",
+		"é_x0041_é",
+		# And what only looks like one
+		"_X0041_",
+		"ends in _x",
+		# Markup, and text that reads like markup
+		"<&>\"'",
+		"]]>",
+		"&amp; &#13; &lt;",
+		"comma, separated",
+		"Héllo 世界 🎉",
+		"👨‍👩‍👧 مرحبا",
+	]
+	# Rows need not be as wide as the headers, or as each other
+	ragged = [[], ["", "", "after two empty cells", "wider than the headers"], ["short"]]
+	rows = values.map(|value| [value, "next to it"]).concat(ragged)
+	xlsx = Xlsx.create({ headers: ["Value", "Neighbour"], rows })
+
+	# LibreOffice keeps a line break in a cell as a newline, so that is how a
+	# CRLF comes back. A carriage return on its own survives.
+	read_back = rows.prepend(["Value", "Neighbour"]).map(|row| row.map(|value| value.replace_each("\r\n", "\n")))
+	# The filter options below ask for every text cell quoted and quotes
+	# doubled. An empty cell is no text, and every row is as wide as the widest.
+	width = read_back.fold(0, |widest, row| widest.max(row.len()))
+	csv_cell = |value|
+		if value.is_empty() {
+			""
+		} else {
+			"\"${value.replace_each("\"", "\"\"")}\""
+		}
+	expected = read_back
+		.map(|row| Str.join_with(row.concat(List.repeat("", width - row.len())).map(csv_cell), ",").concat("\n"))
+		.fold("", Str.concat)
+
+	Env.with_temp_dir!(
+		|directory| {
+			directory_str = directory.to_str()?
+			source = directory.join("round_trip.xlsx")
+			Path.write_bytes!(source, xlsx)?
+
+			# A profile of its own, so a LibreOffice that is already running
+			# is left alone and nothing is written to the home directory.
+			# The filter options: comma, double quote, UTF-8, quote all text.
+			_ = Cmd.new_str("soffice")
+				.args_str([
+					"-env:UserInstallation=file://${directory_str}/profile",
+					"--headless",
+					"--convert-to",
+					"csv:Text - txt - csv (StarCalc):44,34,76,1",
+					"--outdir",
+					directory_str,
+					"${directory_str}/round_trip.xlsx",
+				])
+				.timeout_ms(120_000)
+				.exec_output!() ? |err| LibreOfficeFailed(err)
+
+			# soffice exits 0 when it cannot open the file, and writes nothing
+			csv = Path.read_utf8!(directory.join("round_trip.csv")) ? |err| LibreOfficeCouldNotOpenTheSpreadsheet(err)
+			if csv == expected {
+				Ok({})
+			} else {
+				Err(LibreOfficeReadSomethingElse({ expected, actual: csv }))
+			}
 		},
 	)
 }

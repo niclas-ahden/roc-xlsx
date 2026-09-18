@@ -50,10 +50,17 @@
               pkgs.unzip
               # and to xmllint, which parses every part as XML
               pkgs.libxml2
-            ];
+            ]
+            # and to LibreOffice, which opens one and reads the cells back. It is
+            # 2.6 GiB and nixpkgs builds it for Linux only, which is also where CI
+            # runs, so elsewhere the test skips itself.
+            ++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isLinux [ pkgs.libreoffice ];
 
             shellHook = ''
               export ROC_LANGUAGE_SERVER_PATH=${roc}/bin/roc
+            '' + pkgs.lib.optionalString pkgs.stdenv.hostPlatform.isLinux ''
+              # A missing soffice fails the integration test instead of skipping it
+              export ROC_XLSX_REQUIRE_LIBREOFFICE=1
             '';
           };
         };
