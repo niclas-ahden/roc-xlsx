@@ -48,6 +48,8 @@
               # tests/integration_test.roc hands the spreadsheets we write to
               # unzip and reads them back, so the script never assumes host tools.
               pkgs.unzip
+              # and to xmllint, which parses every part as XML
+              pkgs.libxml2
             ];
 
             shellHook = ''

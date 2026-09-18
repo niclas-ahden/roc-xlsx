@@ -15,7 +15,7 @@ main! = |_args| {
 			["Bob", "bob@example.com", "87"],
 			["Carol", "carol@example.com", "92"],
 		],
-	})?
+	})
 
 	Path.write_bytes!(Path.utf8("example.xlsx"), bytes)?
 	Stdout.line!("Wrote example.xlsx (${bytes.len().to_str()} bytes)")

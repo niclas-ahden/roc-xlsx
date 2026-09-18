@@ -26,7 +26,7 @@ main! = |_args| {
             ["Bob", "bob@example.com", "87"],
             ["Carol", "carol@example.com", "92"],
         ],
-    })?
+    })
 
     Path.write_bytes!(Path.utf8("example.xlsx"), bytes)?
     Stdout.line!("Wrote example.xlsx (${bytes.len().to_str()} bytes)")
@@ -35,12 +35,17 @@ main! = |_args| {
 
 See [examples](examples/) for a runnable program.
 
+## Cell values
+
+Any string is a valid cell value and Excel and most other readers shows it exactly as given. Leading and trailing whitespace and line endings are kept, carriage returns included. Characters XML cannot express, such as control characters, are written the way Excel writes them, as `_xHHHH_`, which Excel decodes on load.
+
 ## Limitations
 
 - All cells are strings (no number/date formatting)
 - Single sheet only ("Sheet1")
 - No styling (fonts, colors, borders)
 - No formulas
+- Excel opens at most 1,048,576 rows and 16,384 columns per sheet
 
 ## How it is built
 

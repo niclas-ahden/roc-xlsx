@@ -5,8 +5,9 @@
 ## The `expect` blocks in Xlsx.roc cover column lettering, the XML each part
 ## of the archive is made of, and escaping. tests/integration_test.roc covers
 ## what those cannot: it writes spreadsheets to disk and hands them to a real
-## `unzip`, which verifies the archive and reads the worksheet back. unzip is
-## the only external tool, and the flake's dev shell provides it:
+## `unzip`, which verifies the archive and reads the worksheet back, and to a
+## real `xmllint`, which parses every part. Those are the only external tools,
+## and the flake's dev shell provides both:
 ##
 ##     nix develop -c ./tests.roc
 app [main!] {
