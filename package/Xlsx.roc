@@ -367,6 +367,11 @@ expect column_letter(701) == "ZZ"
 expect column_letter(702) == "AAA"
 expect column_letter(703) == "AAB"
 
+# XFD is the last column Excel opens, and the fourth letter starts after ZZZ
+expect column_letter(16383) == "XFD"
+expect column_letter(18277) == "ZZZ"
+expect column_letter(18278) == "AAAA"
+
 # Create produces non-empty output
 expect Xlsx.create({ headers: ["A"], rows: [] }).len() > 0
 
@@ -377,6 +382,24 @@ expect {
 		rows: [["Alice", "30"], ["Bob", "25"]],
 	})
 	bytes.len() > 0
+}
+
+# The same input gives the same bytes, so the output can be cached or compared
+expect {
+	input = { headers: ["Name", "Age"], rows: [["Alice", "30"], ["Bob\u(7)", "_x0041_"], []] }
+	Xlsx.create(input) == Xlsx.create(input)
+}
+
+# Rows without headers
+expect {
+	sheet = generate_sheet([], [["a", "b"]])
+	sheet.contains("<row r=\"1\"></row>") and sheet.contains("r=\"B2\"")
+}
+
+# An empty row keeps its number, so the rows after it stay where they were
+expect {
+	sheet = generate_sheet(["A"], [[], ["below"]])
+	sheet.contains("<row r=\"2\"></row>") and sheet.contains("<row r=\"3\"><c r=\"A3\"")
 }
 
 # Generate_sheet includes header cells with correct references
@@ -526,6 +549,18 @@ expect cell_text("_xbeef_") == Node.text("_x005F_xbeef_")
 expect cell_text("_x0041") == Node.text("_x005F_x0041")
 expect cell_text("_x0041z") == Node.text("_x005F_x0041z")
 
+# Every literal one is kept literal, wherever it stands
+expect cell_text("__x0041_") == Node.text("__x005F_x0041_")
+expect cell_text("_x0041__x0042_") == Node.text("_x005F_x0041__x005F_x0042_")
+expect cell_text("a_x0041_b_x0042") == Node.text("a_x005F_x0041_b_x005F_x0042")
+
+# Text that is already escaped is a literal like any other, and reads back as it was given
+expect cell_text("_x005F_x0041_") == Node.text("_x005F_x005F_x005F_x0041_")
+
+# The bytes of a character next to one are left whole
+expect cell_text("é_x0041_é") == Node.text("é_x005F_x0041_é")
+expect cell_text("🎉_x0041\u(7)世") == Node.text("🎉_x005F_x0041_x0007_世")
+
 # An unclosed one cannot be closed by the encoding of what follows it
 expect cell_text("_x005F\u(7)") == Node.text("_x005F_x005F_x0007_")
 expect cell_text("_x0041\r") == Node.text("_x005F_x0041_x000D_")
@@ -535,6 +570,10 @@ expect cell_text("_x0041\u(FFFE)") == Node.text("_x005F_x0041_xFFFE_")
 expect cell_text("_x41_") == Node.text("_x41_")
 expect cell_text("_x004") == Node.text("_x004")
 expect cell_text("_xZZZZ_") == Node.text("_xZZZZ_")
+expect cell_text("_X0041_") == Node.text("_X0041_")
+expect cell_text("ends in _x") == Node.text("ends in _x")
+expect cell_text("_x") == Node.text("_x")
+expect cell_text("_x00_x00") == Node.text("_x00_x00")
 
 # Encoded values reach the sheet, so the worksheet is well-formed XML
 expect {
