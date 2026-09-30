@@ -30,7 +30,7 @@ main! = |_| {
 }
 
 # Run a command with inherited stdio, failing the script on a nonzero exit.
-run! : Str, List(Str) => Try({}, [Exit(I32), ..])
+run! : Str, List(Str) => Try({}, [Exit(I32)])
 run! = |program, arguments| {
 	Cmd.exec!(OsStr.utf8(program), arguments.map(OsStr.utf8)) ? |_| Exit(1)
 	Ok({})

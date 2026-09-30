@@ -11,7 +11,7 @@ View the API documentation at [https://niclas-ahden.github.io/roc-xlsx/](https:/
 ```roc
 app [main!] {
     pf: platform "https://github.com/roc-lang/basic-cli/releases/download/0.23.0-rc1/3hT3SoHZ6qbEsa9qVFLUW3547U5LeoNd1KbpqLpz4r1i.tar.zst",
-    xlsx: "https://github.com/niclas-ahden/roc-xlsx/releases/download/0.2.0/D2yvHqw1VLTcHDwGe3435pJbwLVdWhJdwpJ6yVzvNLpL.tar.zst",
+    xlsx: "https://github.com/niclas-ahden/roc-xlsx/releases/download/0.2.1/AiwaPxhKJzc5y6h83YiW7mwc6Viw5czWJoPmmPkJ45rx.tar.zst",
 }
 
 import pf.Path
