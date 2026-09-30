@@ -4,7 +4,7 @@
 ## back the cell values we put in. Then LibreOffice, where there is one, opens
 ## a spreadsheet and has to read the same cell values out of it.
 app [main!] {
-	pf: platform "https://github.com/roc-lang/basic-cli/releases/download/0.23.0-rc1/3hT3SoHZ6qbEsa9qVFLUW3547U5LeoNd1KbpqLpz4r1i.tar.zst",
+	pf: platform "https://github.com/roc-lang/basic-cli/releases/download/0.23.0/GNN5tt2gKdX4dhawg4915C4YB193woHFdcCkz31fhGxv.tar.zst",
 	xlsx: "../package/main.roc",
 }
 
