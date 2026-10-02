@@ -16,7 +16,7 @@
 ## ```
 import xml.Document
 import xml.Element
-import xml.Node exposing [Node]
+import xml.Node
 import zip.Zip
 
 ## XML namespace constants
