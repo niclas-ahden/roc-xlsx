@@ -118,11 +118,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1788770534,
-        "narHash": "sha256-eeq/DJMNfhF24LiOVO7o9iAUn4ds/RwuuSBOL4vWsBY=",
+        "lastModified": 1791529333,
+        "narHash": "sha256-BPNih5ev7DukP+Yx5H2HL+MxUtPBMiH08L3b2bRZuoQ=",
         "owner": "niclas-ahden",
         "repo": "roc-nix",
-        "rev": "96d7f3c02ec11bdf7439df251c1d6d80ecd6fc5b",
+        "rev": "87f1325dfcaf8cce1685f662855429ad02d4957a",
         "type": "github"
       },
       "original": {
@@ -139,18 +139,18 @@
       },
       "locked": {
         "dir": "src",
-        "lastModified": 1791018614,
-        "narHash": "sha256-212hWSDsHKTThHBEM4K0+bxrArUx6B5TFx/m3rQekQ4=",
+        "lastModified": 1791716732,
+        "narHash": "sha256-NS8dvD0mOfrkcwlZRRIVnuw5U1fMeBh7gst/xJRar3Q=",
         "owner": "roc-lang",
         "repo": "roc",
-        "rev": "c5261f31f074830b65cc869a7b1195095491f5bb",
+        "rev": "008dcdf2850f10ed5de4e516f19772be219725ee",
         "type": "github"
       },
       "original": {
         "dir": "src",
         "owner": "roc-lang",
         "repo": "roc",
-        "rev": "c5261f31f074830b65cc869a7b1195095491f5bb",
+        "rev": "008dcdf2850f10ed5de4e516f19772be219725ee",
         "type": "github"
       }
     },
