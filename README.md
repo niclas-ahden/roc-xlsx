@@ -10,8 +10,8 @@ View the API documentation at [https://niclas-ahden.github.io/roc-xlsx/](https:/
 
 ```roc
 app [main!] {
-    pf: platform "https://github.com/niclas-ahden/basic-cli/releases/download/0.28.0/AP9SGT1yrhCKcFxKcoA5tBkNCM6ibBjBxcQGMTb6krev.tar.zst",
-    xlsx: "https://github.com/niclas-ahden/roc-xlsx/releases/download/0.2.2/9hco3vTWu7wGDvJAnAFDDEaGGpfvDPh5HrPcQcMUcqYW.tar.zst",
+    pf: platform "https://github.com/niclas-ahden/basic-cli/releases/download/0.29.0/GrSTLEKd6yw8orQ5ByQQVY3Htg59vZYaoHBvQELueiMB.tar.zst",
+    xlsx: "https://github.com/niclas-ahden/roc-xlsx/releases/download/0.2.3/4yThmc79QyXHQ7SHu6ydA8SW8f6QzfHenwa3XNFGuDhX.tar.zst",
 }
 
 import pf.Path
