@@ -4,11 +4,12 @@
 ## back the cell values we put in. Then LibreOffice, where there is one, opens
 ## a spreadsheet and has to read the same cell values out of it.
 app [main!] {
-	pf: platform "https://github.com/niclas-ahden/basic-cli/releases/download/0.29.0/GrSTLEKd6yw8orQ5ByQQVY3Htg59vZYaoHBvQELueiMB.tar.zst",
+	pf: platform "https://github.com/roc-lang/basic-cli/releases/download/0.26.0/GddgvsGjiNXrHFW6au5i5dUDbTs8FinQdrgE2Gqmw53t.tar.zst",
 	xlsx: "../package/main.roc",
 }
 
 import pf.Cmd
+import pf.Duration
 import pf.Env
 import pf.OsStr
 import pf.Path
@@ -195,7 +196,7 @@ test_libreoffice! = || {
 	name = "LibreOffice reads back what went in"
 	if Cmd.check_available!("soffice") {
 		run_test!(name, round_trip_libreoffice!)
-	} else if Env.var_str!(OsStr.utf8("ROC_XLSX_REQUIRE_LIBREOFFICE")).is_ok() {
+	} else if Env.var_str!(OsStr.from_str("ROC_XLSX_REQUIRE_LIBREOFFICE")).is_ok() {
 		Err(LibreOfficeRequiredButNotOnPath)
 	} else {
 		Stdout.line!("SKIP: ${name} (no soffice on the PATH)")
@@ -283,8 +284,8 @@ round_trip_libreoffice! = || {
 			# A profile of its own, so a LibreOffice that is already running
 			# is left alone and nothing is written to the home directory.
 			# The filter options: comma, double quote, UTF-8, quote all text.
-			_ = Cmd.new_str("soffice")
-				.args_str([
+			_ = Cmd.new(OsStr.from_str("soffice"))
+				.args([
 					"-env:UserInstallation=file://${directory_str}/profile",
 					"--headless",
 					"--convert-to",
@@ -292,9 +293,9 @@ round_trip_libreoffice! = || {
 					"--outdir",
 					directory_str,
 					"${directory_str}/round_trip.xlsx",
-				])
-				.timeout_ms(120_000)
-				.exec_output!() ? |err| LibreOfficeFailed(err)
+				].map(OsStr.from_str))
+				.timeout(Duration.seconds(120))
+				.capture!() ? |err| LibreOfficeFailed(err)
 
 			# soffice exits 0 when it cannot open the file, and writes nothing
 			csv = Path.read_utf8!(directory.join("round_trip.csv")) ? |err| LibreOfficeCouldNotOpenTheSpreadsheet(err)
@@ -348,7 +349,7 @@ verify_well_formed! = |path| {
 			# unzip reads its member argument as a glob, so the brackets need escaping
 			member = part.replace_each("[", "\\[").replace_each("]", "\\]")
 			xml = unzip!(["-p", path, member]) ? |err| FailedToExtractPart(path, part, err)
-			_ = Cmd.new(OsStr.utf8("xmllint")).args_str(["--noout", "-"]).stdin(Bytes(xml.to_utf8())).exec_output!() ? |err| NotWellFormed(path, part, err)
+			_ = Cmd.new(OsStr.from_str("xmllint")).args(["--noout", "-"].map(OsStr.from_str)).stdin(Bytes(xml.to_utf8())).capture!() ? |err| NotWellFormed(path, part, err)
 			Ok({})
 		},
 	)?
@@ -370,6 +371,5 @@ verify_contains! = |path, expected| {
 ## Run unzip with the given arguments and return its stdout.
 unzip! : List(Str) => Try(Str, _)
 unzip! = |arguments| {
-	output = Cmd.new(OsStr.utf8("unzip")).args_str(arguments).exec_output!()?
-	Ok(output.stdout_utf8)
+	Cmd.new(OsStr.from_str("unzip")).args(arguments.map(OsStr.from_str)).capture!()
 }

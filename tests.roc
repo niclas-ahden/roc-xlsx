@@ -13,7 +13,7 @@
 ##
 ##     nix develop -c ./tests.roc
 app [main!] {
-	pf: platform "https://github.com/niclas-ahden/basic-cli/releases/download/0.29.0/GrSTLEKd6yw8orQ5ByQQVY3Htg59vZYaoHBvQELueiMB.tar.zst",
+	pf: platform "https://github.com/roc-lang/basic-cli/releases/download/0.26.0/GddgvsGjiNXrHFW6au5i5dUDbTs8FinQdrgE2Gqmw53t.tar.zst",
 }
 
 import pf.Cmd
@@ -32,6 +32,6 @@ main! = |_| {
 # Run a command with inherited stdio, failing the script on a nonzero exit.
 run! : Str, List(Str) => Try({}, [Exit(I32)])
 run! = |program, arguments| {
-	Cmd.exec!(OsStr.utf8(program), arguments.map(OsStr.utf8)) ? |_| Exit(1)
+	Cmd.call!(OsStr.from_str(program), arguments.map(OsStr.from_str)) ? |_| Exit(1)
 	Ok({})
 }
