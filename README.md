@@ -10,7 +10,7 @@ View the API documentation at [https://niclas-ahden.github.io/roc-xlsx/](https:/
 
 ```roc
 app [main!] {
-    pf: platform "https://github.com/roc-lang/basic-cli/releases/download/0.26.0/GddgvsGjiNXrHFW6au5i5dUDbTs8FinQdrgE2Gqmw53t.tar.zst",
+    pf: platform "https://github.com/roc-lang/basic-cli/releases/download/0.28.0/2yhxoR7cZPSYbyUzPWULFw8AA6QEcdsgFNRmzu7pZbst.tar.zst",
     xlsx: "https://github.com/niclas-ahden/roc-xlsx/releases/download/0.2.6/5TCxASDUdhnaABJ6RyHmUXA4oKrEuvkSdp7s3d6nf6sh.tar.zst",
 }
 
