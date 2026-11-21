@@ -44,6 +44,7 @@ jobs:
     with:
       roc: ${{ needs.roc-versions.outputs.nightly }}
       label: Tests
+      setup: .github/scripts/suite-setup.sh
 
   latest-roc-other-backends:
     name: 'Optional: latest Roc, other backends'
@@ -52,6 +53,7 @@ jobs:
     with:
       roc: ${{ needs.roc-versions.outputs.nightly }}
       label: Tests
+      setup: .github/scripts/suite-setup.sh
       opts: '["dev", "size", "interpreter"]'
 
   recommended-roc:
@@ -62,6 +64,7 @@ jobs:
     with:
       roc: ${{ needs.roc-versions.outputs.recommended }}
       label: Tests
+      setup: .github/scripts/suite-setup.sh
 
   recommended-roc-other-backends:
     name: 'Optional: recommended Roc, other backends'
@@ -71,6 +74,7 @@ jobs:
     with:
       roc: ${{ needs.roc-versions.outputs.recommended }}
       label: Tests
+      setup: .github/scripts/suite-setup.sh
       opts: '["dev", "size", "interpreter"]'
 
   # The drafted bundle, the way a consumer gets it.
@@ -81,6 +85,7 @@ jobs:
     with:
       roc: ${{ needs.roc-versions.outputs.nightly }}
       label: Tests
+      setup: .github/scripts/suite-setup.sh
       bundle-artifact: ${{ needs.draft.outputs.artifact }}
 
   bundle-on-recommended-roc:
@@ -91,6 +96,7 @@ jobs:
     with:
       roc: ${{ needs.roc-versions.outputs.recommended }}
       label: Tests
+      setup: .github/scripts/suite-setup.sh
       bundle-artifact: ${{ needs.draft.outputs.artifact }}
 
   # The newest nightly that passed speed from both the checkout and the

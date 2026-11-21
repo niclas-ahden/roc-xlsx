@@ -31,6 +31,7 @@ jobs:
     with:
       roc: ${{ needs.roc-versions.outputs.nightly }}
       label: roc-xlsx ${{ needs.roc-versions.outputs.release }} on ${{ needs.roc-versions.outputs.nightly }}
+      setup: .github/scripts/suite-setup.sh
       ref: ${{ needs.roc-versions.outputs.release }}
       bundle-url: ${{ needs.roc-versions.outputs.bundle }}
 
@@ -41,6 +42,7 @@ jobs:
     with:
       roc: ${{ needs.roc-versions.outputs.nightly }}
       label: roc-xlsx ${{ needs.roc-versions.outputs.release }} on ${{ needs.roc-versions.outputs.nightly }}
+      setup: .github/scripts/suite-setup.sh
       opts: '["dev", "size", "interpreter"]'
       ref: ${{ needs.roc-versions.outputs.release }}
       bundle-url: ${{ needs.roc-versions.outputs.bundle }}
