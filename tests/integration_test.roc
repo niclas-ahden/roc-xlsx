@@ -346,8 +346,9 @@ verify_well_formed! = |path| {
 	parts = ["[Content_Types].xml", "_rels/.rels", "xl/workbook.xml", "xl/_rels/workbook.xml.rels", "xl/worksheets/sheet1.xml"]
 	_ = parts.map_try!(
 		|part| {
-			# unzip reads its member argument as a glob, so the brackets need escaping
-			member = part.replace_each("[", "\\[").replace_each("]", "\\]")
+			# unzip reads its member argument as a glob. A `[` goes in a set of its
+			# own, since a backslash escapes nothing on Windows
+			member = part.replace_each("[", "[[]")
 			xml = unzip!(["-p", path, member]) ? |err| FailedToExtractPart(path, part, err)
 			_ = Cmd.new(OsStr.from_str("xmllint")).args(["--noout", "-"].map(OsStr.from_str)).stdin(Bytes(xml.to_utf8())).capture!() ? |err| NotWellFormed(path, part, err)
 			Ok({})
